@@ -68,10 +68,10 @@ void wifi_divorce_assoc(wifi_event_sta_disconnected_t *event_data)
 void wifi_divorce_assoc_expire(wifi_event_sta_disconnected_t *event_data)
 {
     uart_clear_up_line();
-    uart_print_uint8t_value("\e[31massoc expire,  err: \e[91m",
+    uart_print_uint8t_value("\e[31massoc expire, try connect later or reboot device  err: \e[91m",
                             event_data->reason, "\e[39m");
     uart_clear_line();
-    wifi_try_reconnect();
+    //wifi_try_reconnect();
 }
 
 void wifi_divorce_assoc_many(wifi_event_sta_disconnected_t *event_data)
@@ -109,7 +109,7 @@ void wifi_divorce_auth_expire(wifi_event_sta_disconnected_t *event_data)
     uart_print_uint8t_value("\e[31mauthorization expire,  err: \e[91m",
                             event_data->reason, "\e[39m");
     uart_clear_line();
-    wifi_try_reconnect();
+    //wifi_try_reconnect();
 }
 
 void wifi_divorce_4way_handsahke(wifi_event_sta_disconnected_t *event_data)
@@ -141,6 +141,7 @@ void wifi_try_reconnect()
 
     if (wifi_sta_info->wifi_reconnect_count < WIFI_RECONNECT_MAX / 2)
     {
+        //esp_wifi_disconnect();
         wifi_connect(wifi_sta_info->ssid_str, wifi_sta_info->passwd);
     }
     else
@@ -160,6 +161,10 @@ void wifi_try_reconnect()
             memcpy(wifi_sta_info->passwd, wifi_sta_info->fallback_passwd, strlen(wifi_sta_info->fallback_passwd));
             wifi_sta_info->passwd[strlen(wifi_sta_info->fallback_passwd)] = '\0';  
 
+            printf("%s\n", wifi_sta_info->fallback_passwd);
+            printf("%s\n", wifi_sta_info->fallback_ssid);
+
+            //esp_wifi_disconnect();
             wifi_connect(wifi_sta_info->fallback_ssid,
                          wifi_sta_info->fallback_passwd);
         }
