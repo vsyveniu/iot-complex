@@ -13,7 +13,7 @@
 #define UART_NUMBER         UART_NUM_1 //purge it after new uart RX/TX
 #define UART_TX_PIN         17 //purge it after new uart RX/TX
 #define UART_RX_PIN         16 //purge it after new uart RX/TX
-#define WIFI_RECONNECT_MAX  8
+#define WIFI_RECONNECT_MAX  16
 
 
 
