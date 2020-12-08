@@ -83,5 +83,19 @@ void app_main()
         esp_wifi_set_mode(WIFI_MODE_APSTA);
         custom_http_server_init();
     }
-    
+
+    gpio_install_isr_service(0);
+
+    //hc_sr501_init();
+
+    //control_buttons_init();
+
+    esp_now_install();
+
+    while (true)
+    {
+       // printf("%d\n", gpio_get_level(HC_SR501));
+        //printf("%d\n", gpio_get_level(FACTORY_BUTTON));
+        vTaskDelay(500/portTICK_PERIOD_MS);
+    }
 }
