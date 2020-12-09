@@ -72,7 +72,9 @@ void app_main()
     }
     wifi_scan_queue = xQueueCreate( 1, sizeof(char) * 1024);
 
-    if(strlen(wifi_sta_info.ssid_str) > 0)
+    wifi_connect("ucode student", ">#ucodeworld");
+
+   /*  if(strlen(wifi_sta_info.ssid_str) > 0)
     {
         wifi_connect(wifi_sta_info.ssid_str, wifi_sta_info.passwd);
     }
@@ -82,7 +84,7 @@ void app_main()
         esp_netif_create_default_wifi_ap();
         esp_wifi_set_mode(WIFI_MODE_APSTA);
         custom_http_server_init();
-    }
+    } */
 
     gpio_install_isr_service(0);
 
@@ -90,7 +92,9 @@ void app_main()
 
     //control_buttons_init();
 
-    esp_now_install();
+    //esp_now_install();
+
+    websocket_init();
 
     while (true)
     {

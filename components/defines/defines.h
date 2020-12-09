@@ -11,6 +11,7 @@
 #include "esp_http_server.h"
 #include "driver/gpio.h"
 #include "esp_now.h"
+#include "esp_err.h"
 
 #define UART_NUMBER         UART_NUM_1 //purge it after new uart RX/TX
 #define UART_TX_PIN         17 //purge it after new uart RX/TX
