@@ -93,8 +93,8 @@ void app_main()
     //control_buttons_init();
 
     //esp_now_install();
-
-    websocket_init();
+    //websocket_init();
+    
 
     while (true)
     {

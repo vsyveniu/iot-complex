@@ -12,6 +12,8 @@
 #include "driver/gpio.h"
 #include "esp_now.h"
 #include "esp_err.h"
+#include "esp_websocket_client.h"
+#include "esp_event.h"
 
 #define UART_NUMBER         UART_NUM_1 //purge it after new uart RX/TX
 #define UART_TX_PIN         17 //purge it after new uart RX/TX
@@ -82,5 +84,5 @@ xSemaphoreHandle scan_mutex;
 nvs_handle_t wifi_nvs_handle;
 QueueHandle_t wifi_scan_queue;
 httpd_handle_t server;
-
+esp_websocket_client_handle_t client; 
 #endif
