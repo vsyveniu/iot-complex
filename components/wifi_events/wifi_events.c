@@ -280,7 +280,7 @@ static void wifi_got_ip_handler(void *handler_args, esp_event_base_t base,
         httpd_stop(server);
     }
     websocket_init();
-    wifi_send_data("FUCK");
+    ws_send_data("FUCK");
 }
 
 esp_err_t wifi_register_events()

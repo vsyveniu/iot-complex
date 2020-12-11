@@ -14,6 +14,7 @@
 #include "wifi_connection.h"
 #include "esp_err.h"
 #include "custom_http_server.h"
+#include "esp_http_client.h"
 
 
 void app_main()
@@ -94,8 +95,52 @@ void app_main()
 
     //esp_now_install();
     //websocket_init();
-    
 
+    /// kill
+/*     vTaskDelay(3000/portTICK_PERIOD_MS);    
+
+    esp_http_client_config_t config = {
+        .url = "http://iot-track.vsyveniu.com/img",
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    err = esp_http_client_perform(client);
+    if(err != ESP_OK)
+    {
+        printf("%s\n", "http fucked 1");
+    } */
+
+    //char buff[42];
+/*     char *body = "---------------------------735323031399963166993862150\n\rContent-Disposition: form-data; name=\"fuck.bmp\"\n\r\n\r$#fkdsofsdf3*FDJSDFjiios";
+    int len = strlen(body);
+    printf("%d\n", len);
+    esp_http_client_set_url(client, "http://iot-track.vsyveniu.com/img");
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Content-Type", "multipart/form-data");
+    esp_http_client_set_header(client, "boundary=", "---------------------------735323031399963166993862150");
+    esp_http_client_set_header(client, "Content-lenght", "131");
+    esp_http_client_set_post_field(client, body, 131);
+    err = esp_http_client_perform(client);
+    if(err != ESP_OK)
+    {
+        printf("%s\n", "http fucked 2");
+    }
+
+    "POST /img HTTP/1.1\r\n" \
+                "Host: iot-track.vsyveniu.com\r\n"\
+                "Connection: keep-alive\r\n"\
+                "Content-Length: %d\r\n"\
+                "Expect: \r\n"\
+                "Content-Type: multipart/form-data; boundary=------------------------%s\r\n\r\n"
+#define OPEN  "--------------------------%s\r\n"\
+                "Content-Disposition: form-data; name='data'; filename='%s'\r\n"\
+                "Content-Type: application/octet-stream\r\n\r\n"
+#define CLOSE   "\r\n--------------------------%s--\r\n" */
+
+    //esp_http_client_read_response(client, buff, 42);
+
+
+    //printf("%s\n", buff);
+///kill
     while (true)
     {
        // printf("%d\n", gpio_get_level(HC_SR501));
