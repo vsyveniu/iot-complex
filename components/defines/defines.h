@@ -13,7 +13,7 @@
 #define UART_NUMBER         UART_NUM_1 //purge it after new uart RX/TX
 #define UART_TX_PIN         17 //purge it after new uart RX/TX
 #define UART_RX_PIN         16 //purge it after new uart RX/TX
-#define WIFI_RECONNECT_MAX  16
+#define WIFI_RECONNECT_MAX  10
 
 
 
@@ -42,12 +42,13 @@ typedef struct uart_saved_input_t
 // end purge
 
 QueueHandle_t wifi_info_queue;
-QueueHandle_t uart_save_input_queue; //purge it after new uart RX/TX
+//QueueHandle_t uart_save_input_queue; //purge it after new uart RX/TX
 QueueHandle_t uart_is_saved; //purge it after new uart RX/TX
-xSemaphoreHandle uart_mutex_output;//purge it after new uart RX/TX
+//xSemaphoreHandle uart_mutex_output;//purge it after new uart RX/TX
 xSemaphoreHandle scan_mutex;
 nvs_handle_t wifi_nvs_handle;
 QueueHandle_t wifi_scan_queue;
 httpd_handle_t server;
+volatile xSemaphoreHandle xMutex;
 
 #endif

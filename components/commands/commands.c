@@ -45,6 +45,10 @@ void register_cmnd_set()
         .command = "exit",
         .func = &cmd_exit,
     };
+    esp_console_cmd_t cmd_clear_conf = {
+            .command = "clear",
+            .func = &cmd_clear,
+    };
 
     esp_console_cmd_register(&cmd_ssid_set_conf);
     esp_console_cmd_register(&cmd_connection_status_conf);
@@ -52,6 +56,7 @@ void register_cmnd_set()
     esp_console_cmd_register(&cmd_wipe_conf);
     esp_console_cmd_register(&cmd_help_conf);
     esp_console_cmd_register(&cmd_exit_conf);
+    esp_console_cmd_register(&cmd_clear_conf);
 }
 
 int cmd_ssid_set(int argc, char** argv)
@@ -129,6 +134,19 @@ int cmd_wipe(int argc, char** argv)
         return 0;
     }
     handle_wipe();
+
+    return 0;
+}
+
+int cmd_clear(int argc, char** argv)
+{
+    if (argc > 1)
+    {
+        uart_print_str(UART_NUMBER, "\n\rType command without options\n\r");
+
+        return 0;
+    }
+    handle_clear();
 
     return 0;
 }

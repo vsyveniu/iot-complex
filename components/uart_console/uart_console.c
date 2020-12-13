@@ -1,200 +1,205 @@
 #include "uart_console.h"
 #include <ctype.h>
 
+static void del_symbol_inside_str(char *str, int position) {
+    int len = strlen(str);
 
-// purge everything except for esp_console_init
-
-static QueueHandle_t uart0_queue;
-xSemaphoreHandle mutexInput;
-
-void uart_event_task(void* pvParams)
-{
-    uart_event_t event;
-    static BaseType_t xHigherPriorityTaskWoken;
-    while (true)
-    {
-        if (xQueueReceive(uart0_queue, (void*)&event,
-                          (portTickType)portMAX_DELAY))
-        {
-            vTaskResume(pvParams);
-            xSemaphoreGiveFromISR(mutexInput, &xHigherPriorityTaskWoken);
-        }
+    for (int i = position; i <= len; i++) {
+        str[i - 1] = str[i];
     }
 }
 
+static void add_symbol_inside_str(char *str, int position, char c) {
+    char tmp = '\0';
+    int len = strlen(str);
 
+    for (int i = position; i <= len; i++) {
+        tmp = str[i];
+        str[i] = c;
+        c = tmp;
+    }
+}
 
-void cmd_instance_task(void* pvParams)
-{
-    char* prompt = "\r> ";
-    uint8_t buff[256];
-    memset(buff, 0, 256);
-    char str[256];
-    memset(str, '\0', 256);
-    int i = 0;
-    int j = 0;
-    int ret = 0;
-    int is_first = 1;
+static void esc_to_do(uint8_t *buf, t_flag *f) {
+    if (buf[2] == 'D' && f->position > 0) {
+        uart_write_bytes(UART_NUM, (char *)buttons.left, 1);
+        f->position--;
+    }
+    else if (buf[2] == 'C' && f->position < f->count_str_size) {
+        uart_write_bytes(UART_NUM, (char *)buttons.right, 3);
+        f->position++;
+    }
+}
+
+static void data_to_do(char *str, uint8_t *buf, t_flag *f, int read) {
+    if (f->position != f->count_str_size) {
+        if (read == 1) {
+            uart_write_bytes(UART_NUM, (char *)insert_one_space, 3);
+            uart_write_bytes(UART_NUM, (char *)buf, read);
+            add_symbol_inside_str(str, f->position, (char)buf[0]);
+            f->count_str_size += read;
+            f->position++;
+        } else {
+            for (int i = 0; i < read; i++) {
+                uart_write_bytes(UART_NUM, (char *)insert_one_space, 3);
+                uart_write_bytes(UART_NUM, (const char *) &(buf[i]), 1);
+                add_symbol_inside_str(str, f->position, buf[i]);
+                f->count_str_size++;
+                f->position++;
+            }
+        }
+    } else {
+        strcat(str, (char *)buf);
+        uart_write_bytes(UART_NUM, (char *)buf, read);
+        f->count_str_size += read;
+        f->position = f->count_str_size;
+    }
+}
+
+static void enter_to_do(char *str, t_flag *f) {
     esp_err_t console_ret = 0;
+    int ret = 0;
 
-    while (true)
+    console_ret = esp_console_run(str, &ret);
+
+    if (console_ret == ESP_ERR_INVALID_ARG) // deleted || i = 0
     {
-        if (xSemaphoreTake(mutexInput, portMAX_DELAY))
-        {
-            uart_saved_input_s uart_saved[1];
-            xQueuePeek(uart_save_input_queue, &uart_saved, 10);
+        uart_write_bytes(UART_NUM, (char *)buttons.enter, 4);
+    }
+    else if (console_ret == ESP_ERR_NOT_FOUND)
+    {
+        uart_write_bytes(UART_NUM, (char *)buttons.enter, 4);
+        uart_print_str(UART_NUM, "Command not found");
+        uart_write_bytes(UART_NUM, (char *)buttons.enter, 4);
+    } else if (strcmp(str, "clear") != 0) {
+        uart_write_bytes(UART_NUM, (char *) buttons.enter, 4);
+    }
+    uart_flush(UART_NUM);
 
-            if (is_first)
-            {
-                uart_write_bytes(UART_NUMBER, prompt, strlen(prompt));
-                is_first = 0;
-            }
-            int rxlen;
-            ret = 0;
-            console_ret = 0;
-            rxlen =
-                uart_read_bytes(UART_NUM_1, buff, 256, 20 / portTICK_RATE_MS);
+    memset(str, '\0', strlen(str));
+    f->position = 0;
+    f->count_str_size = 0;
+}
 
-            if (buff[0] == 13)
-            {
-                uart_saved->p_saved = NULL;
-                int z = 0;
-                while (z < strlen(str) && str[z] != '\0')
-                {
-                    if (!isprint(str[z]))
-                    {
-                        str[z] = ' ';
-                    }
-                    z++;
-                }
-                xQueueOverwrite(uart_save_input_queue, &uart_saved);
-                console_ret = esp_console_run(str, &ret);
-                if (console_ret == ESP_ERR_INVALID_ARG || i == 0)
-                {
-                    uart_print_str(UART_NUMBER,
-                                   "\n\n\rWhat am i supposed to do?\n");
-                }
-                else if (console_ret == ESP_ERR_NOT_FOUND)
-                {
-                    uart_print_str(UART_NUMBER, "\n\n\rCommand not found\n");
-                }
-                memset(str, '\0', 256);
-                memset(buff, 0, 256);
-                i = 0;
-
-                if (ret == 1)
-                {
-                    is_first = 1;
-                    uart_print_str(
-                        UART_NUMBER,
-                        "\n\rType anything to enter a REPL again\n\r");
-                    vTaskSuspend(NULL);
-                }
-                else
-                {
-                    uart_print_str(UART_NUMBER, "\n\r");
-                    uart_write_bytes(UART_NUMBER, prompt, strlen(prompt));
-                }
-            }
-            else if (rxlen > 0)
-            {
-                j = 0;
-                if (buff[0] == 127 && i > 0)
-                {
-                    uart_write_bytes(UART_NUMBER, "\b", 1);
-                    uart_write_bytes(UART_NUMBER, " ", 1);
-                    uart_write_bytes(UART_NUMBER, "\b", 1);
-                    i--;
-                    str[i] = buff[j];
-                    j++;
-                }
-                if (isprint(buff[0]))
-                {
-                    j = 0;
-                    if (rxlen + strlen(str) > 255 && strlen(str) < 255)
-                    {
-                        uart_write_bytes(UART_NUMBER, buff, 255 - strlen(str));
-                        while (i < 255)
-                        {
-                            str[i] = buff[j];
-                            i++;
-                            j++;
-                        }
-                    }
-                    else if (i < 255)
-                    {
-                        uart_write_bytes(UART_NUMBER, buff, rxlen);
-                        while (j < rxlen)
-                        {
-                            str[i] = buff[j];
-                            i++;
-                            j++;
-                        }
-                        uart_saved->p_saved = str;
-                        xQueueOverwrite(uart_save_input_queue, &uart_saved);
-                    }
-                }
-            }
-            memset(buff, 0, 256);
-        }
-        vTaskDelay(20 / portTICK_PERIOD_MS);
+static void backspace_to_do(char *str, t_flag *f, int buf_size) {
+    if (f->position == f->count_str_size && f->position != 0) {
+        uart_write_bytes(UART_NUM, (char *)buttons.backspace, 4);
+        f->count_str_size -= 1;
+        f->position = f->count_str_size;
+        str[f->count_str_size] = '\0'; //delete last symbol from str
+    } else if (f->position != 0) {
+        uart_write_bytes(UART_NUM, (char *)buttons.backspace, 4);
+        del_symbol_inside_str(str, f->position);
+        f->count_str_size--;
+        f->position--;
     }
 }
 
-int8_t uart_console_init()
-{
-    //keep this
+static void uart_data_handler(char *str, t_flag *f) {
+    uint8_t *buf = NULL;
+    int read = 0;
+    size_t buf_size = 0;
+
+    uart_get_buffered_data_len(UART_NUM, &buf_size);
+    buf = malloc(sizeof(uint8_t) * (buf_size + 1));
+    memset(buf, '\0', buf_size + 1);
+    read = uart_read_bytes(UART_NUM, buf, buf_size + 1, 1);
+
+    switch (buf[0]) {
+        case 27:
+            esc_to_do(buf, f);
+            break;
+        case 13:
+            enter_to_do(str, f);
+            break;
+        case 127:
+            backspace_to_do(str, f, read);
+            break;
+        default:
+            data_to_do(str, buf, f, read);
+    }
+    free(buf);
+    buf = NULL;
+}
+
+static void uart_start() {
+    uart_config_t uart_config = {
+            .baud_rate = 9600,
+            .data_bits = UART_DATA_8_BITS,
+            .parity    = UART_PARITY_DISABLE,
+            .stop_bits = UART_STOP_BITS_1,
+            .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+    };
+
+    uart_driver_install(UART_NUM, 2048, 2048, 20, &uart0_queue, 0);
+    uart_param_config(UART_NUM, &uart_config);
+
+    uart_set_pin(UART_NUM, 17, 16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+}
+
+static void task_uart_event_handler(void **registered_commands) {
+    uart_event_t event;
+    char str[1024];
+    t_flag f = {0, 0}; // check
+
+    memset(str, 0, 1024);
+    while (true) {
+        if (xQueueReceive(uart0_queue, (void * )&event, (portTickType)portMAX_DELAY)) {
+
+            if (event.type == UART_DATA) {
+                xSemaphoreTake(xMutex, (portTickType)portMAX_DELAY);
+                xSemaphoreGive(xMutex);
+                uart_data_handler(str, &f);
+
+            }
+            if (event.type == UART_BREAK) {
+                printf("UART_BREAK------------------------------\n");
+            }
+            if (event.type == UART_PATTERN_DET) {
+                printf("UART_PATTERN_DET------------------------------\n");
+            }
+            if (event.type == UART_EVENT_MAX) {
+                printf("UART_EVENT_MAX------------------------------\n");
+            }
+            if (event.type == UART_DATA_BREAK) {
+
+            }
+        }
+    }
+    vTaskDelete(NULL);
+}
+
+static void uart_inti() {
+    uart_config_t uart_config = {
+            .baud_rate = 9600,
+            .data_bits = UART_DATA_8_BITS,
+            .parity    = UART_PARITY_DISABLE,
+            .stop_bits = UART_STOP_BITS_1,
+            .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+    };
+
+    uart_driver_install(UART_NUM, 2048, 2048, 20, &uart0_queue, 0);
+    uart_param_config(UART_NUM, &uart_config);
+
+    uart_set_pin(UART_NUM, TX_UART_NUM, RX_UART_NUM, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+}
+
+static void start_console_inti() {
     esp_err_t err;
 
     esp_console_config_t console_conf = {
-        .max_cmdline_length = 256,
-        .max_cmdline_args = 12,
-        .hint_color = 37,
-        .hint_bold = 1,
+            .max_cmdline_length = 256,
+            .max_cmdline_args = 12,
+            .hint_color = 37,
+            .hint_bold = 1,
     };
 
     err = esp_console_init(&console_conf);
-    if (err != ESP_OK)
-    {
-        return err;
-    }
-
-    //END keep this
-
-
-    uart_config_t uart_config = {
-        .baud_rate = 115200,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-
-    };
-
-    ESP_ERROR_CHECK(uart_param_config(UART_NUMBER, &uart_config));
-    uart_set_pin(UART_NUMBER, UART_TX_PIN, UART_RX_PIN, UART_PIN_NO_CHANGE,
-                 UART_PIN_NO_CHANGE);
-    ESP_ERROR_CHECK(
-        uart_driver_install(UART_NUMBER, 1024, 0, 20, &uart0_queue, 0));
-
-    TaskHandle_t xcmdHandle = NULL;
-
-    mutexInput = xSemaphoreCreateBinary();
-    uart_mutex_output = xSemaphoreCreateMutex();
-
-    uart_save_input_queue = xQueueCreate(1, sizeof(uart_saved_input_s));
-
-    uart_enable_tx_intr(UART_NUMBER, 1, 1);
-
-    uart_saved_input_s uart_saved[1];
-    uart_saved->p_saved = NULL;
-    xQueueSend(uart_save_input_queue, &uart_saved, 10);
-
-    xTaskCreate(cmd_instance_task, "cmd_instance_task", 4096, NULL, 2,
-                &xcmdHandle);
-    xTaskCreate(uart_event_task, "uart_event_task", 2048, xcmdHandle, 2, NULL);
-
-    uart_print_str(UART_NUMBER, "\n\rType anything to enter a REPL \n\n\r");
-
-    return ESP_OK;
 }
+
+void uart_console_start() {
+    uart_inti();
+    start_console_inti();
+    xTaskCreate(task_uart_event_handler, "task_uart_event_handler", 14096, NULL, 10, NULL);
+}
+

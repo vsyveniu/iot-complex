@@ -29,5 +29,6 @@ void handle_http_get(char* host, char* query);
 //void handle_wifi_params_set(struct arg_str* ssid, struct arg_str* passwd);
 void handle_wipe();
 void handle_help();
+void handle_clear();
 
 #endif

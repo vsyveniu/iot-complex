@@ -1,19 +1,10 @@
 #include "commands_handle.h"
-#include "driver/periph_ctrl.h"
 #include "soc/timer_group_struct.h"
-#include <sys/time.h>
-#include "sntp.h"
 #include "argtable3/argtable3.h"
 #include "lwip/err.h"
 #include "lwip/sockets.h"
-#include "lwip/sys.h"
-#include <lwip/netdb.h>
 #include "esp_log.h"
-#include "lwip/ip4_addr.h"
-#include "lwip/dns.h"
 #include <errno.h>
-#include "socket_connection.h"
-#include "esp_tls.h"
 #include "esp_wifi.h"
 
 void handle_ssid_set(struct arg_str* ssid, struct arg_str* passwd)
@@ -21,6 +12,9 @@ void handle_ssid_set(struct arg_str* ssid, struct arg_str* passwd)
     int32_t ssid_len;
     int32_t passwd_len;
 
+    xSemaphoreGive(xMutex);
+    xSemaphoreTake(xMutex, (portTickType)portMAX_DELAY);
+    uart_flush_input(UART_NUMBER);
     ssid_len = strlen(*ssid->sval);
     passwd_len = strlen(*passwd->sval);
 
@@ -61,6 +55,7 @@ void handle_ssid_set(struct arg_str* ssid, struct arg_str* passwd)
     esp_wifi_disconnect();
 
     uart_print_str(UART_NUMBER, "\r\n");
+    uart_print_str(UART_NUMBER, "Connection ...");
     wifi_connect(ssid_copy, passwd_copy);
 }
 
@@ -81,4 +76,11 @@ void handle_help()
     uart_print_str(UART_NUMBER, "\n\rconnection-status");
     uart_print_str(UART_NUMBER, "\n\rdisconnect");
     uart_print_str(UART_NUMBER, "\n\rset-wifi-params -s \"ssid\" -p \"passwd\"");
+}
+
+void handle_clear()
+{
+    const uint8_t clear[8] = {27, '[', '2', 'J', 27, '[', 'H', '>'};
+
+    uart_write_bytes(UART_NUMBER, (char *)clear, 8);
 }

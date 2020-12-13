@@ -13,7 +13,6 @@ void uart_print_int8t_value(char *before, int8_t value, char *after);
 void uart_print_int_value(char *before, int value, char *after);
 void uart_print_uint8t_value(char *before, uint8_t value, char *after);
 void uart_print_str_value(char *before, char *value, char *after);
-void uart_flush_saved_input();
 void uart_clear_line();
 void uart_clear_up_line();
 

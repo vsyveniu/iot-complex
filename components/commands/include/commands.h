@@ -24,5 +24,6 @@ int     cmd_alarm(int argc, char** argv);
 //int     cmd_wifi_params_set(int argc, char** argv);
 int     cmd_wipe(int argc, char** argv);
 int     cmd_exit();
+int     cmd_clear(int argc, char** argv);
 
 #endif

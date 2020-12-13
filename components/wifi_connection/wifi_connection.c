@@ -117,6 +117,20 @@ esp_err_t wifi_init()
 
 esp_err_t wifi_connect(char *ssid_name, char *passwd)
 {
+    static uint8_t number_of_attempts = 0;
+
+    uart_flush_input(UART_NUMBER);
+//    xSemaphoreGive(xMutex);
+//    xSemaphoreTake(xMutex, (portTickType)portMAX_DELAY);
+
+    number_of_attempts++;
+    if (number_of_attempts == 6)
+    {
+        uart_flush_input(UART_NUMBER);
+        uart_print_str(UART_NUMBER, "ssid doesn't provided. Can't connect\n\r");
+        uart_print_str(UART_NUMBER, "trying to connect to previous one ...\n\r>");
+        number_of_attempts = 0;
+    }
     if(strlen(ssid_name) > 0)
     {
         wifi_config_t sta_config = {.sta = {
@@ -135,10 +149,6 @@ esp_err_t wifi_connect(char *ssid_name, char *passwd)
             printf("%s %s\n", "couldn't set sta mode config", esp_err_to_name(err));
             return (ESP_FAIL);
         }
-        
-        uart_print_str_value("\e[33mTry connect to ", ssid_name, "\e[39m");
-        uart_clear_line();
-
         wifi_info_update_ssid(ssid_name, passwd);
 
         err = esp_wifi_connect();
@@ -154,8 +164,10 @@ esp_err_t wifi_connect(char *ssid_name, char *passwd)
     }
     else
     {
-        uart_print_str(UART_NUMBER, "ssid doesn't provided. Can't connect");
-        uart_clear_line();
+        uart_flush_input(UART_NUMBER);
+        uart_print_str(UART_NUMBER, "ssid doesn't provided. Can't connect\n\r>");
+        number_of_attempts = 0;
+        xSemaphoreGive(xMutex);
         return (ESP_FAIL);
     }
 }
@@ -165,6 +177,7 @@ void wifi_display_info()
     wifi_sta_info_s wifi_sta_info[1];
     xQueuePeek(wifi_info_queue, &wifi_sta_info, 10);
     uart_print_str(UART_NUMBER, "\n\r");
+    uart_flush(UART_NUMBER);
     if(wifi_sta_info->is_connected)
     {
         uart_print_str(UART_NUMBER, "\e[K\n\r");
@@ -177,16 +190,16 @@ void wifi_display_info()
         uart_print_uint8t_value("Channel: ", wifi_sta_info->channel, NULL);
         uart_print_str(UART_NUMBER, "\e[K\n\r");
         uart_print_int8t_value("RSSI: ", wifi_sta_info->rssi, " dBm");
-        uart_print_str(UART_NUMBER, "\e[K\n\r");
+        uart_print_str(UART_NUMBER, "\e[K\n\r>");
 
     }
     else
     {
         uart_print_str(UART_NUMBER, "\e[K\n\r");
         uart_print_str_value("State: ", wifi_sta_info->state, NULL);
-        uart_print_str(UART_NUMBER, "\e[K\n\r");
+        uart_print_str(UART_NUMBER, "\e[K\n\r>");
     }
-    uart_flush_saved_input();   
+    xSemaphoreGive(xMutex);
 }
 
 void wifi_wipe_info()
@@ -268,7 +281,7 @@ uint8_t *wifi_str_to_ssid(char *ssid_str)
     return ssid;
 }
 
-esp_err_t   wifi_get_nvs_data(wifi_sta_info_s *wifi_sta_info)
+esp_err_t wifi_get_nvs_data(wifi_sta_info_s *wifi_sta_info)
 {
     nvs_open("wifi_store", NVS_READWRITE, &wifi_nvs_handle);
 
