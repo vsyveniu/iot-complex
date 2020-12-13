@@ -18,11 +18,13 @@
 
 void app_main()
 {
+    xMutex = xSemaphoreCreateMutex();
+
     esp_err_t err;
 
     nvs_flash_init();
 
-    uart_console_init();
+    uart_console_start();
     register_cmnd_set();
 
     gpio_config_t butt_1_conf = {

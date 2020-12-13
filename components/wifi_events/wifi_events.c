@@ -49,88 +49,50 @@ void wifi_divorce_by_intention()
 
 void wifi_divorce_no_ap(wifi_event_sta_disconnected_t *event_data)
 {
-    uart_clear_up_line();
-    uart_print_uint8t_value("\e[31mcould'nt find access point,  err: \e[91m",
-                            event_data->reason, "\e[39m");
-    uart_clear_line();
     wifi_try_reconnect();
 }
 
 void wifi_divorce_assoc(wifi_event_sta_disconnected_t *event_data)
 {
-    uart_clear_up_line();
-    uart_print_uint8t_value("\e[31assoc fail,  err:  \e[91m",
-                            event_data->reason, "\e[39m");
-    uart_clear_line();
     wifi_try_reconnect();
 }
 
 void wifi_divorce_assoc_expire(wifi_event_sta_disconnected_t *event_data)
 {
-    uart_clear_up_line();
-    uart_print_uint8t_value("\e[31massoc expire, try connect later or reboot device  err: \e[91m",
-                            event_data->reason, "\e[39m");
-    uart_clear_line();
-    //wifi_try_reconnect();
+    wifi_try_reconnect();
 }
 
 void wifi_divorce_assoc_many(wifi_event_sta_disconnected_t *event_data)
 {
-    uart_clear_up_line();
-    uart_print_uint8t_value("\e[31maccos too many,  err: \e[91m",
-                            event_data->reason, "\e[39m");
-    uart_clear_line();
     wifi_try_reconnect();
 }
 
 void wifi_divorce_auth_fail(wifi_event_sta_disconnected_t *event_data)
 {
-    uart_clear_up_line();
-    uart_print_uint8t_value(
-        "\e[31mauthorization fail, bad password? err: \e[91m",
-        event_data->reason, "\e[39m");
-    uart_clear_line();
     wifi_try_reconnect();
 }
 
 void wifi_divorce_beacon_timeout(wifi_event_sta_disconnected_t *event_data)
 {
     wifi_wipe_info();
-    uart_clear_up_line();
+
     uart_print_uint8t_value(
         "\e[31mbeacon timeout, wifi is dead, hope he didn't suffer err: \e[91m",
         event_data->reason, "\e[39m");
-    uart_clear_line();
 }
 
 void wifi_divorce_auth_expire(wifi_event_sta_disconnected_t *event_data)
 {
-    uart_clear_up_line();
-    uart_print_uint8t_value("\e[31mauthorization expire,  err: \e[91m",
-                            event_data->reason, "\e[39m");
-    uart_clear_line();
-    //wifi_try_reconnect();
+    wifi_try_reconnect();
 }
 
 void wifi_divorce_4way_handsahke(wifi_event_sta_disconnected_t *event_data)
 {
-    uart_clear_up_line();
-    uart_print_uint8t_value(
-        "\e[31m4 way handsahke fail, perhaps you have entered wrong password?  "
-        "err: \e[91m",
-        event_data->reason, "\e[39m");
-    uart_clear_line();
     wifi_try_reconnect();
 }
 
 void wifi_divorce_handsahke_timeout(wifi_event_sta_disconnected_t *event_data)
 {
-    uart_clear_up_line();
-    uart_print_uint8t_value(
-        "\e[31mhandsahke timeout, perhaps you have entered wrong password?  "
-        "err: ",
-        event_data->reason, "\e[39m");
-    uart_clear_line();
     wifi_try_reconnect();
 }
 
@@ -149,11 +111,11 @@ void wifi_try_reconnect()
         if (wifi_sta_info->fallback_ssid != NULL &&
             wifi_sta_info->wifi_reconnect_count < WIFI_RECONNECT_MAX)
         {
-            uart_clear_up_line();
-            uart_print_str(
-                UART_NUMBER,
-                "Gonna try to connect to previous successfull access point");
-            uart_clear_line();
+//            uart_clear_up_line();
+//            uart_print_str(
+//                UART_NUMBER,
+//                "Gonna try to connect to previous successfull access point");
+//            uart_clear_line();
 
             // set passwd as fallback cause if not and successfully reconenct to
             // fallback, the passwd field will be incorrect from cli passwd
@@ -178,7 +140,6 @@ void wifi_try_reconnect()
 
     wifi_sta_info->wifi_reconnect_count++;
     xQueueOverwrite(wifi_info_queue, &wifi_sta_info);
-    uart_flush_saved_input();
 }
 
 static void wifi_disconnect_handler(void *handler_args, esp_event_base_t base,

@@ -15,9 +15,33 @@
 #include "commands.h"
 #include "defines.h"
 
+#define UART_NUM UART_NUM_1
+#define TX_UART_NUM 1
+#define RX_UART_NUM 3
 
-void uart_event_task(void *pvParams);
-void cmd_instance_task(void *pvParams);
-int8_t uart_console_init();
+QueueHandle_t uart0_queue;
+
+typedef struct s_flags {
+    int count_str_size;
+    int position;
+} t_flag;
+
+struct buttons {
+    char enter[5];
+    uint8_t backspace[4];
+    uint8_t left[3];
+    uint8_t right[3];
+};
+
+const static uint8_t insert_one_space[3] = { 27, '[', '@',};
+
+const static struct buttons buttons = {
+        .enter = "\n\r>",
+        .backspace = {0x08, 27, '[', 'P'},
+        .left = {0x08, '[', 'D',},
+        .right = {27, '[', 'C',},
+};
+
+void uart_console_start();
 
 #endif
