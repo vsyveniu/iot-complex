@@ -53,18 +53,12 @@ esp_err_t ws_send_data(void *data_income)
     esp_err_t err;
     char *data = (char *)data_income;
 
-     err = esp_websocket_client_start(client);
-	if(err != ESP_OK)
-	{
-		printf("%s\n", esp_err_to_name(err));
-	}
-    else
-    {
+     
+
         printf("%s\n", "try send data");
         esp_websocket_client_send(client, data, strlen(data), 10);
-        esp_websocket_client_stop(client);
+       // esp_websocket_client_stop(client);
          return ESP_OK;
-    }
 
    return ESP_FAIL;
 }
@@ -77,7 +71,7 @@ esp_err_t websocket_init()
 
     esp_websocket_client_config_t websocket_cfg = {
 		.uri = "ws://46.101.189.225",
-		.port = 6000,
+		.port = 6003,
         //.cert_pem = pem,
 	};
 
@@ -87,6 +81,11 @@ esp_err_t websocket_init()
 
 	client = esp_websocket_client_init(&websocket_cfg);
     esp_websocket_register_events(client, WEBSOCKET_EVENT_ANY, websocket_event_handler, (void *)client);
+
+    err = esp_websocket_client_start(client);
+
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    ws_send_data("ESP_INTRUSION");
 
     return (ESP_OK);
 }
