@@ -235,10 +235,10 @@ static void wifi_got_ip_handler(void *handler_args, esp_event_base_t base,
     uart_print_str_value("\e[32mSuccess! \e[39mGot IP: \e[34m",
                          wifi_sta_info->ip, "\e[39m");
     wifi_display_info();
-    esp_wifi_set_mode(WIFI_MODE_STA);
-    if(server != NULL)
+   // esp_wifi_set_mode(WIFI_MODE_APSTA);
+    if(server2 != NULL)
     {
-        httpd_stop(server);
+        httpd_stop(server2);
     }
 }
 

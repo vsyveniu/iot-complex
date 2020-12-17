@@ -9,11 +9,14 @@
 #include "freertos/timers.h"
 #include "driver/timer.h"
 #include "esp_http_server.h"
-
+#include "esp_websocket_client.h"
+#include "driver/gpio.h"
 #define UART_NUMBER         UART_NUM_1 //purge it after new uart RX/TX
 #define UART_TX_PIN         17 //purge it after new uart RX/TX
 #define UART_RX_PIN         16 //purge it after new uart RX/TX
 #define WIFI_RECONNECT_MAX  10
+#define HC_SR501            GPIO_NUM_12
+#define FACTORY_BUTTON      GPIO_NUM_39
 
 
 
@@ -41,6 +44,9 @@ typedef struct uart_saved_input_t
 } uart_saved_input_s;
 // end purge
 
+httpd_handle_t server = NULL;
+httpd_handle_t server2 = NULL;
+
 QueueHandle_t wifi_info_queue;
 //QueueHandle_t uart_save_input_queue; //purge it after new uart RX/TX
 QueueHandle_t uart_is_saved; //purge it after new uart RX/TX
@@ -48,7 +54,10 @@ QueueHandle_t uart_is_saved; //purge it after new uart RX/TX
 xSemaphoreHandle scan_mutex;
 nvs_handle_t wifi_nvs_handle;
 QueueHandle_t wifi_scan_queue;
-httpd_handle_t server;
+
 volatile xSemaphoreHandle xMutex;
+esp_websocket_client_handle_t client;
+xQueueHandle hc_sr501_queue;
+xQueueHandle factory_reset_queue; 
 
 #endif

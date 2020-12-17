@@ -7,6 +7,9 @@
 #include "freertos/semphr.h"
 #include "wifi_events.h"
 #include "nvs_flash.h"
+#include "websocket.h"
+// #include "HC_SR501.h"
+#include "control_buttons.h"
 
 
 #endif

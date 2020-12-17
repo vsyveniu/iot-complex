@@ -16,8 +16,8 @@
 #include "defines.h"
 
 #define UART_NUM UART_NUM_1
-#define TX_UART_NUM 1
-#define RX_UART_NUM 3
+#define TX_UART_NUM 17
+#define RX_UART_NUM 16
 
 QueueHandle_t uart0_queue;
 

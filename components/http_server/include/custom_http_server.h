@@ -16,5 +16,6 @@
 #include <unistd.h>
 
 httpd_handle_t custom_http_server_init(void);
+httpd_handle_t start_webserver(void);
 
 #endif

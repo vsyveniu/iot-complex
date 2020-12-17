@@ -153,7 +153,7 @@ static void task_uart_event_handler(void **registered_commands) {
 
             }
             if (event.type == UART_BREAK) {
-                printf("UART_BREAK------------------------------\n");
+                //printf("UART_BREAK------------------------------\n");
             }
             if (event.type == UART_PATTERN_DET) {
                 printf("UART_PATTERN_DET------------------------------\n");

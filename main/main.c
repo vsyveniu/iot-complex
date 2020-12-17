@@ -8,19 +8,27 @@
 #include "esp_eth.h"
 #include "esp_log.h"
 #include "lwip/err.h"
+#include "esp_err.h"
 #include "lwip/sys.h"
 #include "esp_netif.h"
 #include "lwip/apps/sntp.h"
 #include "wifi_connection.h"
+
+// #include "bitmap.h"
 #include "esp_err.h"
+#include "esp_camera.h"
+// #include "movement.h"
 #include "custom_http_server.h"
 
+#define TAG ""
 
 void app_main()
 {
     xMutex = xSemaphoreCreateMutex();
-
+    
     esp_err_t err;
+    err = gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1 | ESP_INTR_FLAG_IRAM);
+    
 
     nvs_flash_init();
 
@@ -74,8 +82,7 @@ void app_main()
     }
     wifi_scan_queue = xQueueCreate( 1, sizeof(char) * 1024);
 
-    if(strlen(wifi_sta_info.ssid_str) > 0)
-    {
+    if(strlen(wifi_sta_info.ssid_str) > 0) {
         wifi_connect(wifi_sta_info.ssid_str, wifi_sta_info.passwd);
     }
     else
@@ -83,7 +90,63 @@ void app_main()
         wifi_scan_aps();
         esp_netif_create_default_wifi_ap();
         esp_wifi_set_mode(WIFI_MODE_APSTA);
-        custom_http_server_init();
+         custom_http_server_init();
+        
     }
+   
+    // hc_sr501_init();
     
+    control_buttons_init();
+
+    static camera_config_t camera_config = {
+        .pin_pwdn  = -1,                        // power down is not used
+        .pin_reset = 2,              // software reset will be performed
+        .pin_xclk = 4,
+        .pin_sscb_sda = 23,
+        .pin_sscb_scl = 22,
+
+        .pin_d7 = 14,
+        .pin_d6 = 27,
+        .pin_d5 = 25,
+        .pin_d4 = 26,
+        .pin_d3 = 32,
+        .pin_d2 = 33,
+        .pin_d1 = 34,
+        .pin_d0 = 35,
+        .pin_vsync = 19,
+        .pin_href = 18,
+        .pin_pclk = 5,
+
+        //XCLK 20MHz or 10MHz for OV2640 double FPS (Experimental)
+        .xclk_freq_hz = 20000000,
+        .ledc_timer = LEDC_TIMER_0,
+        .ledc_channel = LEDC_CHANNEL_0,
+        .pixel_format = PIXFORMAT_RGB565,
+        .frame_size = FRAMESIZE_QQVGA,
+        .jpeg_quality = 12, //0-63 lower number means higher quality
+        .fb_count = 1 //if more than one, i2s runs in continuous mode. Use only with JPEG
+    };
+
+    err = esp_camera_init(&camera_config);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Camera init failed with error 0x%x", err);
+        return;
+    }
+    ESP_LOGI(TAG, "Free heap: %u", xPortGetFreeHeapSize());
+    ESP_LOGI(TAG, "Camera demo ready");
+    start_webserver();
+    printf("Error 5\n");
+    return err;
 }
+
+
+     ////////////////////////////////////////////////////////////////
+     ////////////////////////////////////////////////////////////////
+     ////////////////////////////////////////////////////////////////
+     ////////////////////////////////////////////////////////////////
+     ////////////////////////////////////////////////////////////////
+     ////////////////////////////////////////////////////////////////
+
+
+
+
