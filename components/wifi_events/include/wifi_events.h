@@ -15,6 +15,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "wifi_connection.h"
+#include "websocket.h"
 
 esp_err_t wifi_register_events();
 void wifi_try_reconnect();

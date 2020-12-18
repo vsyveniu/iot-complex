@@ -65,8 +65,8 @@ esp_err_t websocket_init()
 
     esp_websocket_client_start(client);
 
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-    ws_send_data("ESP_INTRUSION");
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+   // ws_send_data("ESP_INTRUSION");
 
     return (ESP_OK);
 }

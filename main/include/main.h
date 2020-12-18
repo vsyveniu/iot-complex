@@ -11,6 +11,7 @@
 // #include "HC_SR501.h"
 #include "control_buttons.h"
 #include "movement.h"
+#include "websocket.h"
 
 
 #endif

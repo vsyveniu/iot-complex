@@ -4,6 +4,7 @@
 #include "esp_system.h"
 #include "freertos/queue.h"
 #include "custom_http_server.h"
+#include "websocket.h"
 
 void hc_sr501_fired();
 esp_err_t hc_sr501_init();

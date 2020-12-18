@@ -236,6 +236,7 @@ static void wifi_got_ip_handler(void *handler_args, esp_event_base_t base,
                          wifi_sta_info->ip, "\e[39m");
     wifi_display_info();
    // esp_wifi_set_mode(WIFI_MODE_APSTA);
+    websocket_init();
     if(server2 != NULL)
     {
         httpd_stop(server2);

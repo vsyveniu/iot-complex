@@ -16,13 +16,12 @@ void hc_sr501_fired() {
         printf("%d\n", gpio_get_level(DATA_HCSR501));
         if(xQueueReceive(hc_sr501_queue, &pin, portMAX_DELAY)) {
             printf("interrupt:  %d\n", gpio_get_level(DATA_HCSR501));
-            if(gpio_get_level(DATA_HCSR501) == 1) {
-               
-            }
-            else
+            while(gpio_get_level(DATA_HCSR501) != 0)
             {
-               
+                 ws_send_data("ESP_INTRUSION");
+                 vTaskDelay(2000/portTICK_PERIOD_MS);
             }
+            ws_send_data("ESP_INTRUSION_END");
         }
         vTaskDelay(50);
     }

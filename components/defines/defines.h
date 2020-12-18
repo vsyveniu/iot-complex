@@ -15,6 +15,8 @@
 #define UART_TX_PIN         17 //purge it after new uart RX/TX
 #define UART_RX_PIN         16 //purge it after new uart RX/TX
 #define WIFI_RECONNECT_MAX  10
+#define LED_GREEN           GPIO_NUM_16
+#define LED_RED             GPIO_NUM_17
 #define HC_SR501            GPIO_NUM_12
 #define FACTORY_BUTTON      GPIO_NUM_39
 
