@@ -29,6 +29,8 @@ void app_main()
     esp_err_t err;
     err = gpio_install_isr_service(ESP_INTR_FLAG_LEVEL1 | ESP_INTR_FLAG_IRAM);
     
+    server = NULL;
+    server2 = NULL;
 
     nvs_flash_init();
 
@@ -134,9 +136,11 @@ void app_main()
     }
     ESP_LOGI(TAG, "Free heap: %u", xPortGetFreeHeapSize());
     ESP_LOGI(TAG, "Camera demo ready");
-    start_webserver();
     printf("Error 5\n");
-    return err;
+    hc_sr501_init();
+    control_buttons_init();
+    start_webserver();
+    //return err;
 }
 
 

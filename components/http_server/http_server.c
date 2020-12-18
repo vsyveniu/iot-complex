@@ -257,6 +257,7 @@ httpd_handle_t start_webserver(void) {
         ESP_LOGI(TAG, "Registering URI handlers");
 
         printf("Error 1\n");
+        printf("SERVER INIT\n");
         sensor_t * sensor = esp_camera_sensor_get();
         printf("Error 2\n");
 

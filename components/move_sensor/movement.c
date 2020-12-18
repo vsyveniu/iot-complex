@@ -17,12 +17,11 @@ void hc_sr501_fired() {
         if(xQueueReceive(hc_sr501_queue, &pin, portMAX_DELAY)) {
             printf("interrupt:  %d\n", gpio_get_level(DATA_HCSR501));
             if(gpio_get_level(DATA_HCSR501) == 1) {
-                start_webserver();
+               
             }
             else
             {
-                httpd_stop(server);
-                server = NULL;
+               
             }
         }
         vTaskDelay(50);
@@ -33,24 +32,23 @@ esp_err_t hc_sr501_init() {
     printf("%s\n", "hc init");
 
     gpio_config_t hc_sr501_conf = {
-        .pin_bit_mask = DATA_HCSR501,
+        .pin_bit_mask = GPIO_SEL_12,
         .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
+        //.pull_up_en = GPIO_PULLUP_DISABLE,
         // .pull_down_en = GPIO_PULLDOWN_ENABLE,
         .intr_type = GPIO_INTR_POSEDGE,
     };
 
     printf("JOIsdfjo isdjg %d\n\n", gpio_config(&hc_sr501_conf));
-    printf("aerytrjuhgf %d\n\n", gpio_install_isr_service(ESP_INTR_FLAG_IRAM));
     gpio_isr_handler_add(DATA_HCSR501, hc_sr501_intr, (void *)DATA_HCSR501);
 
     hc_sr501_queue = xQueueCreate(10, sizeof(int));
     int count = 0;
-    while(true) {
-      printf("%d %d\n", count, gpio_get_level(DATA_HCSR501));
-      vTaskDelay(20);
-      count++;
-    }
-    // xTaskCreate(hc_sr501_fired, "hc_fired", 2048, NULL, 1, NULL);
+    // while(true) {
+    //   printf("%d %d\n", count, gpio_get_level(DATA_HCSR501));
+    //   vTaskDelay(20);
+    //   count++;
+    // }
+     xTaskCreate(hc_sr501_fired, "hc_fired", 2048, NULL, 1, NULL);
     return (ESP_OK);
 }

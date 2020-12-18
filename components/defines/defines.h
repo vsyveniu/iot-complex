@@ -44,8 +44,8 @@ typedef struct uart_saved_input_t
 } uart_saved_input_s;
 // end purge
 
-httpd_handle_t server = NULL;
-httpd_handle_t server2 = NULL;
+httpd_handle_t server;
+httpd_handle_t server2;
 
 QueueHandle_t wifi_info_queue;
 //QueueHandle_t uart_save_input_queue; //purge it after new uart RX/TX
