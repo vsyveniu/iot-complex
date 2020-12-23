@@ -1,4 +1,5 @@
 #include "wifi_events.h"
+#include "custom_http_server.h"
 
 static void wifi_scan_handler(void *handler_args, esp_event_base_t base,
                               int32_t id, void *event_data)
@@ -241,6 +242,8 @@ static void wifi_got_ip_handler(void *handler_args, esp_event_base_t base,
     {
         httpd_stop(server2);
     }
+    if(server == NULL)
+        start_webserver();
 }
 
 esp_err_t wifi_register_events()

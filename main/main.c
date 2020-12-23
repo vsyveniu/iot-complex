@@ -138,11 +138,11 @@ void app_main()
     }
     ESP_LOGI(TAG, "Free heap: %u", xPortGetFreeHeapSize());
     ESP_LOGI(TAG, "Camera demo ready");
-    printf("Error 5\n");
     //websocket_init();
     hc_sr501_init();
     control_buttons_init();
-    start_webserver();
+    if(server == NULL)
+        start_webserver();
     //return err;
 }
 

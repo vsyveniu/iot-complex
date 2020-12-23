@@ -282,11 +282,9 @@ httpd_handle_t start_webserver(void) {
             ESP_LOGI(TAG, "Open http://" IPSTR "/jpg for single image/jpg image", IP2STR(&s_ip_addr));
             ESP_LOGI(TAG, "Open http://" IPSTR "/jpg_stream for multipart/x-mixed-replace stream of JPEGs", IP2STR(&s_ip_addr));
         }
-        printf("Error 4\n");
         return server;
     }
     
-    printf("Error 4\n");
     ESP_LOGI(TAG, "Error starting server!");
     return NULL;
 }
